@@ -1,0 +1,14 @@
+[theme]
+base = "light"
+primaryColor = "#a855f7"
+backgroundColor = "#f4f6fa"
+secondaryBackgroundColor = "#ffffff"
+textColor = "#172033"
+borderColor = "#64748B"
+dataframeBorderColor = "#AAB8CC"
+font = "sans serif"
+showWidgetBorder = true
+
+[server]
+maxUploadSize = 200
+port = 8502
