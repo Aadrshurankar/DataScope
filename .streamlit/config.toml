@@ -11,4 +11,5 @@ showWidgetBorder = true
 
 [server]
 maxUploadSize = 200
-port = 8502
+port = 8501
+
