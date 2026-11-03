@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f4f6fa">
+  <title>DataLens | Dataset Insights</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+</head>
+<body>
+  <header class="navbar"><a class="brand" href="./" aria-label="DataLens home"><span class="brand-icon">▦</span><span><strong>Data<span>Lens</span></strong><small>Clear insights from every dataset.</small></span></a><button id="themeToggle" class="theme-toggle" title="Switch theme" aria-label="Switch theme">🌙</button></header>
+  <main class="page">
+    <section class="overview-grid">
+      <article class="panel upload-panel">
+        <div class="panel-heading"><span class="panel-icon purple">↑</span><div><h1>Upload your <em>dataset</em></h1><p>Upload a CSV or Excel file to preview, check data quality and get instant insights.</p></div></div>
+        <label id="dropZone" class="drop-zone" for="fileInput"><strong>Drag and drop your CSV or Excel file here, or click Browse files</strong><div class="upload-actions"><span class="upload-button">⇧ &nbsp; Upload</span><span>200MB per file • CSV, XLSX, XLS</span></div><input id="fileInput" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+        <div id="fileStatus" class="file-status">Supported formats: CSV, XLSX, XLS &nbsp;|&nbsp; Maximum size: 200MB</div>
+      </article>
+      <article class="panel overview-panel">
+        <div class="panel-heading"><span class="panel-icon teal">▥</span><div><h2>Dataset <em>Overview</em></h2><p>Quick summary of your uploaded dataset</p></div></div>
+        <div class="metric-grid">
+          <div class="metric m-blue"><span class="metric-icon">♧</span><span>Rows</span><b id="rowCount">0</b></div>
+          <div class="metric m-pink"><span class="metric-icon">▦</span><span>Columns</span><b id="columnCount">0</b></div>
+          <div class="metric m-yellow"><span class="metric-icon">◷</span><span>Missing Values</span><b id="missingCount">0</b></div>
+          <div class="metric m-green"><span class="metric-icon">↧</span><span>Blank Cells</span><b id="blankCount">0</b></div>
+          <div class="metric m-purple"><span class="metric-icon">▤</span><span>Duplicate Rows</span><b id="duplicateCount">0</b></div>
+        </div>
+        <h3 class="basic-title">Basic Information</h3><div id="fileInfo" class="file-info"><div><span>▤</span><small>File Name<b>—</b></small></div><div><span>▤</span><small>File Type<b>—</b></small></div><div><span>▤</span><small>Data Shape<b>—</b></small></div><div><span>▤</span><small>File Size<b>—</b></small></div><div><span>▤</span><small>Encoding<b>—</b></small></div><div><span>▤</span><small>Memory Usage<b>—</b></small></div></div>
+        <p class="hint">Data quality issues are summarized here. Open the Data Quality tab below to inspect them by column.</p>
+      </article>
+    </section>
+    <nav class="tabs" role="tablist" aria-label="Dataset tools">
+      <button class="tab active" data-tab="preview">▦ Data Preview</button><button class="tab" data-tab="quality">⬡ Data Quality</button><button class="tab" data-tab="analysis">▥ Quick Analysis</button><button class="tab" data-tab="visualizations">◉ Visualizations</button><button class="tab" data-tab="correlation">▦ Correlation</button><button class="tab" data-tab="download">↓ Download</button>
+    </nav>
+    <div id="emptyState" class="empty-state">Upload a CSV or Excel file to begin exploring your dataset.</div>
+    <section id="workspace" hidden>
+      <div class="tab-panel" id="panel-preview"><div class="section-head"><h2>Data Preview</h2><div class="preview-controls"><label>Search in data...<input id="searchInput" type="search" placeholder="Search rows"></label><label>Show rows<select id="rowLimit"><option>10</option><option>25</option><option>50</option><option>100</option><option>500</option></select></label></div></div><div class="table-wrap"><table id="previewTable"></table></div><p class="caption">Empty file cells are counted as missing. Text cells containing only spaces are counted as blank.</p></div>
+      <div class="tab-panel" id="panel-quality" hidden><h2>Data Quality</h2><p class="caption">Review missing values, blank cells, duplicates and detected column types.</p><div class="table-wrap"><table id="qualityTable"></table></div></div>
+      <div class="tab-panel" id="panel-analysis" hidden><h2>Quick Analysis</h2><div class="control-row"><label>Choose a number to explore<select id="numberSelect"></select></label></div><div id="numberStats" class="stat-grid"></div><p id="numberSummary" class="summary-text"></p><details><summary>See detailed statistics for all number columns</summary><div class="table-wrap"><table id="allStatsTable"></table></div></details><h2 class="subheading">Most common category values</h2><div class="control-row"><label>Choose a category<select id="categorySelect"></select></label></div><div id="categoryChart" class="chart"></div><h2 class="subheading">Changes over time</h2><div class="control-row"><label>Choose a date column<select id="dateSelect"></select></label><label>Choose a number for the trend<select id="trendSelect"></select></label></div><div id="trendChart" class="chart"></div><p class="caption">Each point adds up the selected number for that month. Ambiguous text dates are interpreted day-first (DD/MM).</p></div>
+      <div class="tab-panel" id="panel-visualizations" hidden><h2>Visualizations</h2><div class="control-row three"><label>Bottom axis (left to right)<select id="xSelect"></select></label><label>Side axis (bottom to top)<select id="ySelect"></select></label><label>Choose a chart<select id="chartType"><option value="scatter">Dots · compare two numbers</option><option value="bar">Bars · compare values</option><option value="line">Line · see a pattern</option><option value="histogram">Histogram · see a spread</option><option value="box">Box · compare ranges</option></select></label></div><p id="chartHint" class="caption">Each dot is one row. Its place shows the two numbers for that row.</p><div id="mainChart" class="chart"></div></div>
+      <div class="tab-panel" id="panel-correlation" hidden><h2>Correlation</h2><p class="caption">Values near 1 move together; values near -1 move in opposite directions. Values near 0 show little linear relationship.</p><div id="correlationChart" class="chart"></div><div class="table-wrap"><table id="correlationTable"></table></div></div>
+      <div class="tab-panel" id="panel-download" hidden><h2>Download Reports</h2><div class="download-grid"><article class="download-card"><h3>Dataset CSV</h3><p>Your complete dataset, ready to open or share as a CSV file.</p><button id="downloadCsv">Download dataset (CSV)</button></article><article class="download-card"><h3>Data quality CSV</h3><p>Missing values, blank cells, data types, and unique-value counts by column.</p><button id="downloadQuality">Download quality report (CSV)</button></article><article class="download-card"><h3>Excel workbook</h3><p>One workbook with Data, Quality Report, and Overview sheets.</p><button id="downloadExcel">Download Excel report</button></article></div><p class="caption">Duplicate rows in this dataset: <b id="downloadDuplicates">0</b>. Empty input cells count as missing; text containing only spaces counts as blank.</p><p class="caption">Text that starts like a spreadsheet formula is prefixed with an apostrophe in exports for safety.</p></div>
+    </section>
+    <footer>DataLens · Clear insights from every dataset</footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
